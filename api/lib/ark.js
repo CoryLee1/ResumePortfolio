@@ -179,32 +179,22 @@ async function arkResponsesJson({ system, user, maxTokens, apiKey, model }) {
   return parseJsonFromModel(extractArkText(json));
 }
 
-function jsonObjectUnsupported(errText) {
-  return /json_object|response_format\.type/i.test(errText);
-}
+/** OpenAI-compatible Chat API on Ark (no response_format — many Ark models reject json_object) */
+async function arkChatCompletionsJson({ system, user, maxTokens, apiKey, model }) {
+  const jsonHint =
+    process.env.ARK_JSON_MODE === "0"
+      ? ""
+      : "\n\nReply with a single valid JSON object only. No markdown fences.";
 
-/** OpenAI-compatible Chat API on Ark */
-async function arkChatCompletionsJson({
-  system,
-  user,
-  maxTokens,
-  apiKey,
-  model,
-  useJsonFormat = process.env.ARK_JSON_MODE !== "0",
-}) {
   const body = {
     model,
     temperature: 0.35,
     max_tokens: maxTokens,
     messages: [
-      { role: "system", content: system },
+      { role: "system", content: system + jsonHint },
       { role: "user", content: user },
     ],
   };
-
-  if (useJsonFormat) {
-    body.response_format = { type: "json_object" };
-  }
 
   const res = await fetch(`${ARK_BASE}/chat/completions`, {
     method: "POST",
@@ -217,16 +207,6 @@ async function arkChatCompletionsJson({
 
   if (!res.ok) {
     const err = await res.text();
-    if (useJsonFormat && jsonObjectUnsupported(err)) {
-      return arkChatCompletionsJson({
-        system,
-        user,
-        maxTokens,
-        apiKey,
-        model,
-        useJsonFormat: false,
-      });
-    }
     throw new Error(`Ark Chat ${res.status}: ${err.slice(0, 400)}`);
   }
 
