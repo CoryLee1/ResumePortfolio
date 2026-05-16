@@ -19,7 +19,16 @@ function fallbackScreen() {
 }
 
 export async function runScreen({ cvData, jobDescription, locale = "en" }) {
-  const jd = String(jobDescription ?? "").trim().slice(0, 12000);
+  const onVercel = process.env.VERCEL === "1";
+  const jd = String(jobDescription ?? "")
+    .trim()
+    .slice(0, onVercel ? 4000 : 12000);
+
+  let cvText = cvDataToText(cvData);
+  if (onVercel && cvText.length > 8000) {
+    cvText = `${cvText.slice(0, 8000)}\n[CV truncated for serverless time limit]`;
+  }
+
   const lang =
     locale === "zh"
       ? "Write hookLine and reviews primarily in Chinese; keep proper nouns in English when needed."
@@ -32,10 +41,10 @@ ${prompts.screenSchema()}
 ${lang}`;
 
   const user = jd
-    ? `JOB DESCRIPTION:\n${jd}\n\n---\nCV:\n${cvDataToText(cvData)}`
-    : `No JD provided — evaluate as a strong creative technologist / product designer general application.\n\n---\nCV:\n${cvDataToText(cvData)}`;
+    ? `JOB DESCRIPTION:\n${jd}\n\n---\nCV:\n${cvText}`
+    : `No JD provided — evaluate as a strong creative technologist / product designer general application.\n\n---\nCV:\n${cvText}`;
 
-  const maxTokens = process.env.VERCEL ? 2500 : 4096;
+  const maxTokens = onVercel ? 1800 : 4096;
   const llm = await chatJson({ system, user, maxTokens });
   if (llm.placeholder) {
     return fallbackScreen();
