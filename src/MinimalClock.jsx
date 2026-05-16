@@ -192,13 +192,13 @@ export default function MinimalClock({ portfolioUrl, socialUrl }) {
           <g transform={`rotate(${secondDeg})`}>
             <line
               x1="0"
-              y1="6"
+              y1="10"
               x2="0"
-              y2="-68"
+              y2="-90"
               stroke="#0a0a0a"
-              strokeWidth="0.55"
+              strokeWidth="0.65"
               strokeLinecap="square"
-              opacity="0.88"
+              opacity="0.9"
             />
           </g>
           <circle cx="0" cy="0" r="2.2" fill="#0a0a0a" />
