@@ -154,6 +154,7 @@ export default function CareerKitPanel({
         company,
       });
       setCover(res);
+      openGmail(res);
     } catch (e) {
       setError(e.message);
     } finally {
@@ -161,12 +162,12 @@ export default function CareerKitPanel({
     }
   };
 
-  const openGmail = () => {
-    if (!cover?.body) return;
+  const openGmail = (coverObj = cover) => {
+    if (!coverObj?.body) return;
     const url = buildGmailComposeUrl({
       to: recipientEmail.trim(),
-      subject: cover.subject,
-      body: cover.body,
+      subject: coverObj.subject,
+      body: coverObj.body,
     });
     window.open(url, "_blank", "noopener,noreferrer");
   };
@@ -390,7 +391,7 @@ export default function CareerKitPanel({
           />
           <button
             type="button"
-            onClick={openGmail}
+            onClick={() => openGmail()}
             style={{ ...btnA, width: "100%", padding: "7px", fontSize: 7.5 }}
           >
             {t("gmailSend")}
