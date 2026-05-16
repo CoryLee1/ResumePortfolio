@@ -31,7 +31,7 @@ function fallbackPlan(data, persona, jobDescription) {
     hiddenSections,
     hiddenItems: [],
     profileRewrites: [],
-    summary: `[Offline] Applied ${persona.label} section order. Set ARK_API_KEY (豆包) or OPENAI_API_KEY for JD-aware refinement.`,
+    summary: `[Offline] Applied ${persona.label} section order. Local: LLM_PROVIDER=ollama + ollama pull. Cloud: ARK_API_KEY or OPENAI_API_KEY.`,
     highlights: ["Connect API key for bullet-level tailoring"],
   };
 }

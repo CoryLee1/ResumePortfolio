@@ -5,11 +5,24 @@
 ## 本地运行
 
 ```bash
+# 1) 安装并拉模型（任选其一，体积越小越快）
+ollama pull qwen2.5-coder:1.5b
+# ollama pull qwen2.5:7b
+
+# 2) 确保 Ollama 在跑（一般安装后会自动监听 11434）
+ollama serve
+
 cd api
 cp .env.example .env
+# 编辑 .env：LLM_PROVIDER=ollama  OLLAMA_MODEL=qwen2.5-coder:1.5b
 npm install
 npm run dev
 ```
+
+根目录另开终端：`npm run dev`（Vite 会把 `/api` 代理到 `:3001`）。
+
+**LLM 优先级（`LLM_PROVIDER=auto` 时）**：已配置 Ollama → 豆包 Ark → OpenAI。  
+强制指定：`LLM_PROVIDER=ollama|ark|openai`。
 
 - 健康检查：`GET /health`
 - 浏览量：`GET /api/views` · `POST /api/views`（会话去重由前端 `sessionStorage` 处理）

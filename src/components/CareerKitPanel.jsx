@@ -84,7 +84,7 @@ export default function CareerKitPanel({
       setPreset(res.preset ?? null);
       setAgentNote(
         (res.plan?.summary || "") +
-          (res.placeholder ? "\n\n(未配置 ARK_API_KEY / OPENAI_API_KEY，当前为规则排序)" : "")
+          (res.placeholder ? "\n\n(未接 LLM：本地设 LLM_PROVIDER=ollama，或配置 ARK_API_KEY)" : "")
       );
     } catch (e) {
       setError(e.message);

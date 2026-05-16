@@ -1,9 +1,16 @@
-import "dotenv/config";
+import dotenv from "dotenv";
+import path from "path";
+import { fileURLToPath } from "url";
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+dotenv.config({ path: path.join(__dirname, ".env") });
+dotenv.config({ path: path.join(__dirname, "..", ".env") });
 import cors from "cors";
 import express from "express";
 import { runTailor } from "./lib/tailorService.js";
 import { runCompose } from "./lib/composeService.js";
 import { getViewCount, incrementViewCount, viewsStorageMode } from "./lib/viewStore.js";
+import { llmProviderLabel } from "./lib/llm.js";
 
 const app = express();
 const PORT = Number(process.env.PORT) || 3001;
@@ -21,9 +28,13 @@ app.get("/health", (_req, res) => {
     service: "resume-portfolio-api",
     time: new Date().toISOString(),
     viewsStorage: viewsStorageMode(),
+    llm: process.env.LLM_PROVIDER || "auto",
+    ollama: Boolean(process.env.OLLAMA_MODEL || process.env.OLLAMA_ENABLED || process.env.LLM_PROVIDER === "ollama"),
+    ollamaModel: process.env.OLLAMA_MODEL || "qwen2.5-coder:1.5b",
     ark: Boolean(process.env.ARK_API_KEY),
     arkModel: process.env.ARK_MODEL || "doubao-seed-2-0-pro-260215",
     openai: Boolean(process.env.OPENAI_API_KEY),
+    activeLlm: llmProviderLabel(),
   });
 });
 

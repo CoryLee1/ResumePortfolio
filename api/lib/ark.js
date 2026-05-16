@@ -23,12 +23,7 @@ function extractArkText(json) {
   throw new Error("No text in Ark response");
 }
 
-function parseJsonFromModel(raw) {
-  const trimmed = raw.trim();
-  const fenced = trimmed.match(/```(?:json)?\s*([\s\S]*?)```/i);
-  const body = fenced ? fenced[1].trim() : trimmed;
-  return JSON.parse(body);
-}
+import { parseJsonFromModel } from "./parseModelJson.js";
 
 /** @see https://www.volcengine.com/docs/82379/1569618 */
 async function arkResponsesJson({ system, user, maxTokens, apiKey, model }) {
