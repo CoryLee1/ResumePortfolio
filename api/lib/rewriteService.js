@@ -1,4 +1,5 @@
 import { chatJson } from "./llm.js";
+import { prompts } from "./prompts/index.js";
 
 export async function runRewrite({ content, instruction, locale = "en" }) {
   if (!content?.type) {
@@ -12,8 +13,8 @@ export async function runRewrite({ content, instruction, locale = "en" }) {
       ? "Respond in Chinese where appropriate; keep proper nouns."
       : "Respond in English.";
 
-  const system = `You rewrite one CV content block. Return JSON: { "content": { ...same type fields... } }
-Rules: keep facts accurate, improve clarity, match professional CV tone. ${lang}
+  const system = `${prompts.rewrite()}
+${lang}
 ${instruction ? `User instruction: ${instruction}` : ""}`;
 
   const user = `Block type: ${content.type}\nCurrent:\n${JSON.stringify(content, null, 2)}`;

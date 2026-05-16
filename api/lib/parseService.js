@@ -1,25 +1,7 @@
 import { chatJson } from "./llm.js";
 import { decodeUpload, extractFromBuffer } from "./extractFile.js";
 import { parseWithArkVision } from "./arkVision.js";
-
-const PARSE_SCHEMA = `Return JSON only:
-{
-  "sections": [
-    {
-      "id": "profile|work|projects|education|publications|...",
-      "title": "SECTION TITLE",
-      "items": [
-        {
-          "content": { "type": "text|work|proj|edu|pub|ln|kv", ...fields }
-        }
-      ]
-    }
-  ],
-  "meta": { "contact": { "email": "..." } },
-  "summary": "what was extracted"
-}
-
-Use the same content shapes as a structured CV. Do not invent employers or dates not in the source.`;
+import { prompts } from "./prompts/index.js";
 
 export async function runParse({ base64, fileName, mimeType, cvData, locale = "en" }) {
   const { buffer, ext, mimeType: mt } = decodeUpload({ base64, fileName, mimeType });
@@ -30,8 +12,8 @@ export async function runParse({ base64, fileName, mimeType, cvData, locale = "e
       ? "Write summary in Chinese. Keep CV content in the source document language."
       : "Write summary in English.";
 
-  const system = `You are a CV import assistant. Extract resume/portfolio content from the uploaded material into structured JSON blocks.
-${PARSE_SCHEMA}
+  const system = `${prompts.parseSystem()}
+${prompts.parseSchema()}
 ${langNote}`;
 
   let user;

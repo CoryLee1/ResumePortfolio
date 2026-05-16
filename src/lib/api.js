@@ -54,3 +54,7 @@ export function postParse(body) {
 export function postRewrite(body) {
   return apiFetch("/api/rewrite", { method: "POST", body: JSON.stringify(body) });
 }
+
+export function postScreen(body) {
+  return apiFetch("/api/screen", { method: "POST", body: JSON.stringify(body) });
+}

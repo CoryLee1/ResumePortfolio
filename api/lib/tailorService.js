@@ -2,16 +2,7 @@ import { getPersona } from "./personas.js";
 import { cvDataToText } from "./cvText.js";
 import { chatJson } from "./llm.js";
 import { applyTailorPlan } from "./applyTailorPlan.js";
-
-const TAILOR_SCHEMA = `Return JSON only:
-{
-  "sectionOrder": ["profile","work",...],
-  "hiddenSections": ["section ids to hide"],
-  "hiddenItems": [{"sectionId":"work","itemId":"w1"}],
-  "profileRewrites": [{"sectionId":"profile","itemId":"s1","text":"optional improved profile paragraph"}],
-  "summary": "2-3 sentences: how this layout serves the JD and persona",
-  "highlights": ["bullet","bullet"]
-}`;
+import { prompts } from "./prompts/index.js";
 
 /** Rule-based fallback when no API key */
 function fallbackPlan(data, persona, jobDescription) {
@@ -31,8 +22,9 @@ function fallbackPlan(data, persona, jobDescription) {
     hiddenSections,
     hiddenItems: [],
     profileRewrites: [],
-    summary: `[Offline] Applied ${persona.label} section order. Local: LLM_PROVIDER=ollama + ollama pull. Cloud: ARK_API_KEY or OPENAI_API_KEY.`,
-    highlights: ["Connect API key for bullet-level tailoring"],
+    summary: `[Offline] Applied ${persona.label} section order. Set ARK_API_KEY or Ollama.`,
+    highlights: ["Connect LLM for JD-aware tailoring"],
+    hookLine: "",
   };
 }
 
@@ -48,12 +40,9 @@ export async function runTailor({ cvData, jobDescription, personaId }) {
   const system = `${persona.system}
 
 You will receive a full CV as JSON lines and a job description.
-${TAILOR_SCHEMA}
+${prompts.tailorSchema()}
 
-Rules:
-- Only use section and item ids that exist in the CV.
-- Do not invent employers, dates, or awards.
-- profileRewrites: at most one profile text item; keep voice human and concise.`;
+${prompts.tailorRules()}`;
 
   const user = `JOB DESCRIPTION:\n${jd}\n\n---\nCV:\n${cvDataToText(cvData)}`;
 
@@ -75,6 +64,7 @@ Rules:
     personaLabel: persona.label,
     preset: persona.preset,
     plan,
+    hookLine: plan.hookLine || "",
     data: tailoredData,
     placeholder,
   };

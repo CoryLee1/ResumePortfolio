@@ -1,10 +1,6 @@
 import { cvDataToText } from "./cvText.js";
 import { chatJson } from "./llm.js";
-
-const COMPOSE_SYSTEM = `You write short, sincere cover letters in plain English (or match JD language if Chinese).
-Tone: warm professional, specific, no buzzword soup, no "I am writing to express".
-Length: 120-180 words unless JD clearly needs Chinese, then 150-220 字.
-Return JSON: { "subject": string, "body": string }`;
+import { prompts } from "./prompts/index.js";
 
 function fallbackLetter({ recipientName, jobDescription, cvData }) {
   const name = cvData?.meta?.name ?? "Yihua Li";
@@ -18,7 +14,7 @@ I'd love to share how I can help your team. My CV is linked below; happy to jump
 Best,
 ${name}
 ${cvData?.meta?.contact?.web ?? ""}`;
-  return { subject, body, placeholder: true };
+  return { subject, body, hookLine: "", placeholder: true };
 }
 
 export async function runCompose({ cvData, jobDescription, recipientName, company }) {
@@ -33,14 +29,14 @@ export async function runCompose({ cvData, jobDescription, recipientName, compan
 Recipient: ${recipientName ?? "(hiring manager)"}
 JD:\n${jd}\n\nCV:\n${cvDataToText(cvData)}`;
 
-  const llm = await chatJson({ system: COMPOSE_SYSTEM, user, maxTokens: 512 });
+  const llm = await chatJson({ system: prompts.compose(), user, maxTokens: 512 });
   if (llm.placeholder) {
     return fallbackLetter({ recipientName, jobDescription: jd, cvData });
   }
 
-  const { subject, body } = llm.data ?? {};
+  const { subject, body, hookLine } = llm.data ?? {};
   if (!subject || !body) {
     return fallbackLetter({ recipientName, jobDescription: jd, cvData });
   }
-  return { subject, body, placeholder: false };
+  return { subject, body, hookLine: hookLine || "", placeholder: false };
 }
