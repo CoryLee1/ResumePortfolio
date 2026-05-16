@@ -1,8 +1,10 @@
 import { useState, useEffect } from "react";
 import MinimalClock from "./MinimalClock.jsx";
 import ReceiptResume from "./ReceiptResume.jsx";
+import CareerKitPanel from "./components/CareerKitPanel.jsx";
 import { DATA, PRESETS } from "./cvData.js";
 import { withHttps } from "./withHttps.js";
+import { trackResumeView, fetchViewCount } from "./lib/trackView.js";
 
 const linkStyle = {
   color: "#2a5cab",
@@ -260,6 +262,8 @@ export default function App() {
   const [dragI,   setDragI]   = useState(null);
   const [overI,   setOverI]   = useState(null);
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [viewCount, setViewCount] = useState(null);
+  const [viewsStorage, setViewsStorage] = useState("");
   const winW = useWindowWidth();
   const isMobile = winW < 768;
   const useSidebarDock = winW >= 1080;
@@ -270,6 +274,26 @@ export default function App() {
     if (winW >= 1080) setSidebarOpen(true);
     else if (winW >= 768) setSidebarOpen(false);
   }, [winW]);
+
+  useEffect(() => {
+    trackResumeView()
+      .then((r) => {
+        if (r?.count != null) {
+          setViewCount(r.count);
+          setViewsStorage(r.storage ?? "");
+        }
+      })
+      .catch(() => {
+        fetchViewCount()
+          .then((r) => {
+            if (r?.count != null) {
+              setViewCount(r.count);
+              setViewsStorage(r.storage ?? "");
+            }
+          })
+          .catch(() => {});
+      });
+  }, []);
 
   /* preset */
   const applyPreset = (k) => {
@@ -423,7 +447,7 @@ export default function App() {
         }
         @media (min-width: 768px) and (max-width: 1079px) {
           .desktop-main--overlay-pad {
-            padding-left: calc(210px + clamp(16px, 4vw, 48px));
+            padding-left: calc(232px + clamp(16px, 4vw, 48px));
           }
         }
         @media (max-width: 900px) {
@@ -465,7 +489,7 @@ export default function App() {
                 zIndex: 290,
                 boxShadow: "8px 0 24px rgba(0,0,0,0.15)",
               }),
-          width: 210,
+          width: 232,
           background:"#f0f2f4", borderRight:"1px solid #d6d8dc",
           padding:"16px 12px", overflowY:"auto",
           fontFamily:f,
@@ -519,6 +543,16 @@ export default function App() {
               <span onClick={()=>mv(si, 1)} style={{ cursor:"pointer", fontSize:9, color:"#bbb", padding:"0 2px", lineHeight:1 }}>↓</span>
             </div>
           ))}
+
+          <CareerKitPanel
+            data={data}
+            setData={setData}
+            setPreset={setPreset}
+            btn={btn}
+            btnA={btnA}
+            viewCount={viewCount}
+            viewsStorage={viewsStorage}
+          />
 
           {/* actions */}
           <div style={{ borderTop:"1px solid #d6d8dc", marginTop:14, paddingTop:12, display:"flex", flexDirection:"column", gap:4 }}>
@@ -624,6 +658,9 @@ export default function App() {
             <div className="spec-bar-meta" style={{ fontFamily:f, fontSize:6.5, color:"#3a3a3a", letterSpacing:"0.06em" }}>
               <span>GS: <b style={{ color:"#666" }}>65</b> cited</span>
               <span>h-index <b style={{ color:"#666" }}>3</b></span>
+              {viewCount != null && (
+                <span>VIEWS <b style={{ color:"#666" }}>{viewCount.toLocaleString()}</b></span>
+              )}
               <span style={{ color:"#2a2a2a" }}>{new Date().getFullYear()}.{String(new Date().getMonth()+1).padStart(2,"0")} · ARCHIVE</span>
             </div>
           </div>

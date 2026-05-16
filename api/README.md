@@ -11,11 +11,10 @@ npm install
 npm run dev
 ```
 
-- 健康检查：http://localhost:3001/health  
-- 占位对话：`POST http://localhost:3001/api/chat`  
-  ```json
-  { "message": "Tell me about PoeSpin", "context": "optional" }
-  ```
+- 健康检查：`GET /health`
+- 浏览量：`GET /api/views` · `POST /api/views`（会话去重由前端 `sessionStorage` 处理）
+- JD 定制：`POST /api/tailor` — `{ "cvData", "jobDescription", "persona": "hr"|"curator"|"immigration" }`
+- 求职信：`POST /api/compose` — `{ "cvData", "jobDescription", "recipientName?", "company?" }`
 
 ## 部署到 Railway
 
@@ -25,8 +24,15 @@ npm run dev
 4. Variables（示例）：
    - `PORT` → Railway 会自动注入，一般不必手写  
    - `CORS_ORIGIN` → `https://你的域名.vercel.app`  
-   - 以后：`OPENAI_API_KEY`  
+   - `ARK_API_KEY` — 豆包 / [火山方舟](https://www.volcengine.com/docs/82379/1541594?lang=zh)（优先）
+   - `ARK_MODEL` — 默认 `doubao-seed-2-0-pro-260215`（可换更便宜的接入点模型 ID）
+   - `OPENAI_API_KEY` — 未配置 Ark 时的备选
+   - `UPSTASH_REDIS_REST_URL` + `UPSTASH_REDIS_REST_TOKEN` — 生产环境真实浏览量（[Upstash](https://upstash.com) 免费档即可）
 5. 生成公网 URL，例如 `https://resume-api-production.up.railway.app`
+
+### Vercel 同源 API（推荐）
+
+前端部署在 Vercel 时，可使用仓库内 `api/tailor.js`、`api/compose.js`、`api/views.js` 作为 Serverless Functions（无需 Railway）。在 Vercel 项目环境变量配置 `OPENAI_API_KEY` 与 Upstash 即可。
 
 ## 与前端配合
 
