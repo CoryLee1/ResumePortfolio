@@ -8,6 +8,7 @@ import {
   deleteVersion,
 } from "../lib/cvVersions.js";
 import { buildGmailComposeUrl } from "../lib/gmail.js";
+import { useI18n } from "../i18n/I18nProvider.jsx";
 
 const PERSONAS = [
   { id: "hr", label: "HR" },
@@ -46,6 +47,7 @@ export default function CareerKitPanel({
   viewCount,
   viewsStorage,
 }) {
+  const { t } = useI18n();
   const [jobDescription, setJobDescription] = useState("");
   const [persona, setPersona] = useState("hr");
   const [recipientEmail, setRecipientEmail] = useState("");
@@ -70,7 +72,7 @@ export default function CareerKitPanel({
     setError("");
     setAgentNote("");
     if (!jobDescription.trim()) {
-      setError("请先粘贴 Job Description");
+      setError(t("needJd"));
       return;
     }
     setLoading("tailor");
@@ -84,7 +86,7 @@ export default function CareerKitPanel({
       setPreset(res.preset ?? null);
       setAgentNote(
         (res.plan?.summary || "") +
-          (res.placeholder ? "\n\n(未接 LLM：本地设 LLM_PROVIDER=ollama，或配置 ARK_API_KEY)" : "")
+          (res.placeholder ? `\n\n(${t("needLlm")})` : "")
       );
     } catch (e) {
       setError(e.message);
@@ -116,7 +118,7 @@ export default function CareerKitPanel({
   const handleCompose = async () => {
     setError("");
     if (!jobDescription.trim()) {
-      setError("需要 JD 才能生成 Cover Letter");
+      setError(t("needJd"));
       return;
     }
     setLoading("compose");
@@ -148,7 +150,7 @@ export default function CareerKitPanel({
   return (
     <div style={{ marginTop: 16, paddingTop: 14, borderTop: "1px solid #d6d8dc" }}>
       <div style={{ fontSize: 7, fontWeight: 600, letterSpacing: "0.28em", color: "#aaa", marginBottom: 10 }}>
-        CAREER KIT
+        {t("careerKit")}
       </div>
 
       {viewCount != null && (
@@ -162,22 +164,22 @@ export default function CareerKitPanel({
             letterSpacing: "0.06em",
           }}
         >
-          VIEWS · {viewCount.toLocaleString()}
+          {t("views")} · {viewCount.toLocaleString()}
           {viewsStorage === "memory" && (
-            <span style={{ color: "#999", marginLeft: 6 }}>(dev)</span>
+            <span style={{ color: "#999", marginLeft: 6 }}>({t("dev")})</span>
           )}
         </div>
       )}
 
-      <span style={labelStyle}>JOB DESCRIPTION</span>
+      <span style={labelStyle}>{t("jobDescription")}</span>
       <textarea
         value={jobDescription}
         onChange={(e) => setJobDescription(e.target.value)}
-        placeholder="粘贴职位描述…"
+        placeholder={t("jdPlaceholder")}
         style={{ ...inputStyle, minHeight: 72, marginBottom: 10 }}
       />
 
-      <span style={labelStyle}>AGENT LENS</span>
+      <span style={labelStyle}>{t("agentLens")}</span>
       <div style={{ display: "flex", flexWrap: "wrap", gap: 3, marginBottom: 10 }}>
         {PERSONAS.map((p) => (
           <button
@@ -198,7 +200,7 @@ export default function CareerKitPanel({
         disabled={loading === "tailor"}
         style={{ ...btnA, width: "100%", padding: "7px", fontSize: 7.5, marginBottom: 8 }}
       >
-        {loading === "tailor" ? "TAILORING…" : "↻ TAILOR CV TO JD"}
+        {loading === "tailor" ? t("tailoring") : t("tailor")}
       </button>
 
       {agentNote && (
@@ -215,12 +217,12 @@ export default function CareerKitPanel({
         </p>
       )}
 
-      <span style={{ ...labelStyle, marginTop: 4 }}>VERSIONS</span>
+      <span style={{ ...labelStyle, marginTop: 4 }}>{t("versions")}</span>
       <input
         type="text"
         value={versionName}
         onChange={(e) => setVersionName(e.target.value)}
-        placeholder="版本名称（可选）"
+        placeholder={t("versionName")}
         style={{ ...inputStyle, minHeight: 28, marginBottom: 6 }}
       />
       <button
@@ -228,11 +230,11 @@ export default function CareerKitPanel({
         onClick={handleSaveVersion}
         style={{ ...btn, width: "100%", padding: "6px", fontSize: 7.5, marginBottom: 8 }}
       >
-        + SAVE VERSION
+        {t("saveVersion")}
       </button>
       <div style={{ maxHeight: 100, overflowY: "auto", marginBottom: 10 }}>
         {versions.length === 0 && (
-          <span style={{ fontSize: 7, color: "#aaa" }}>暂无本地版本</span>
+          <span style={{ fontSize: 7, color: "#aaa" }}>{t("noVersions")}</span>
         )}
         {versions.map((v) => (
           <div
@@ -267,26 +269,26 @@ export default function CareerKitPanel({
         ))}
       </div>
 
-      <span style={labelStyle}>OUTREACH</span>
+      <span style={labelStyle}>{t("outreach")}</span>
       <input
         type="email"
         value={recipientEmail}
         onChange={(e) => setRecipientEmail(e.target.value)}
-        placeholder="HR 邮箱"
+        placeholder={t("hrEmail")}
         style={{ ...inputStyle, minHeight: 28, marginBottom: 6 }}
       />
       <input
         type="text"
         value={recipientName}
         onChange={(e) => setRecipientName(e.target.value)}
-        placeholder="对方姓名（可选）"
+        placeholder={t("recipientName")}
         style={{ ...inputStyle, minHeight: 28, marginBottom: 6 }}
       />
       <input
         type="text"
         value={company}
         onChange={(e) => setCompany(e.target.value)}
-        placeholder="公司（可选）"
+        placeholder={t("company")}
         style={{ ...inputStyle, minHeight: 28, marginBottom: 8 }}
       />
 
@@ -296,7 +298,7 @@ export default function CareerKitPanel({
         disabled={loading === "compose"}
         style={{ ...btn, width: "100%", padding: "7px", fontSize: 7.5, marginBottom: 6 }}
       >
-        {loading === "compose" ? "WRITING…" : "✎ DRAFT COVER LETTER"}
+        {loading === "compose" ? t("writing") : t("draftLetter")}
       </button>
 
       {cover?.body && (
@@ -311,11 +313,11 @@ export default function CareerKitPanel({
             onClick={openGmail}
             style={{ ...btnA, width: "100%", padding: "7px", fontSize: 7.5 }}
           >
-            GMAIL · SEND
+            {t("gmailSend")}
           </button>
           {cover.placeholder && (
             <p style={{ fontSize: 6.5, color: "#999", marginTop: 6 }}>
-              在 Vercel/Railway 配置 ARK_API_KEY 后可 AI 润色求职信
+              {t("needLlm")}
             </p>
           )}
         </>

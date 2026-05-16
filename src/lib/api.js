@@ -33,3 +33,24 @@ export function getViews() {
 export function recordView() {
   return apiFetch("/api/views", { method: "POST" });
 }
+
+export function fileToBase64(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      const result = reader.result;
+      const base64 = String(result).split(",")[1] || "";
+      resolve(base64);
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+export function postParse(body) {
+  return apiFetch("/api/parse", { method: "POST", body: JSON.stringify(body) });
+}
+
+export function postRewrite(body) {
+  return apiFetch("/api/rewrite", { method: "POST", body: JSON.stringify(body) });
+}

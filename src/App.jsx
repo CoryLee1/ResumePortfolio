@@ -2,6 +2,9 @@ import { useState, useEffect } from "react";
 import MinimalClock from "./MinimalClock.jsx";
 import ReceiptResume from "./ReceiptResume.jsx";
 import CareerKitPanel from "./components/CareerKitPanel.jsx";
+import ImportPanel from "./components/ImportPanel.jsx";
+import BlockEditorPanel from "./components/BlockEditorPanel.jsx";
+import { useI18n } from "./i18n/I18nProvider.jsx";
 import { DATA, PRESETS } from "./cvData.js";
 import { withHttps } from "./withHttps.js";
 import { trackResumeView, fetchViewCount } from "./lib/trackView.js";
@@ -253,7 +256,30 @@ function Grip() {
 /* ─────────────────────────────────────────
    APP
    ───────────────────────────────────────── */
+const sidebarLabelStyle = {
+  fontSize: 6.5,
+  fontWeight: 600,
+  letterSpacing: "0.18em",
+  color: "#bbb",
+  marginBottom: 6,
+  display: "block",
+};
+
+const sidebarInputStyle = {
+  width: "100%",
+  border: "1px solid #ccc",
+  background: "#fff",
+  padding: "6px 8px",
+  fontSize: 8,
+  fontFamily: "inherit",
+  borderRadius: 0,
+  resize: "vertical",
+  minHeight: 56,
+  boxSizing: "border-box",
+};
+
 export default function App() {
+  const { t, locale, setLocale } = useI18n();
   const [data,    setData]    = useState(DATA);
   const [editing, setEditing] = useState(true);
   const [preset,  setPreset]  = useState("full");
@@ -447,7 +473,7 @@ export default function App() {
         }
         @media (min-width: 768px) and (max-width: 1079px) {
           .desktop-main--overlay-pad {
-            padding-left: calc(232px + clamp(16px, 4vw, 48px));
+            padding-left: calc(300px + clamp(16px, 4vw, 48px));
           }
         }
         @media (max-width: 900px) {
@@ -489,7 +515,7 @@ export default function App() {
                 zIndex: 290,
                 boxShadow: "8px 0 24px rgba(0,0,0,0.15)",
               }),
-          width: 232,
+          width: 300,
           background:"#f0f2f4", borderRight:"1px solid #d6d8dc",
           padding:"16px 12px", overflowY:"auto",
           fontFamily:f,
@@ -500,17 +526,49 @@ export default function App() {
               onClick={() => setSidebarOpen(false)}
               style={{ ...btnA, width:"100%", padding:"6px", fontSize:7.5, marginBottom:10 }}
             >
-              收起面板
+              {t("collapse")}
             </button>
           )}
           {/* title */}
           <div style={{ fontSize:7, fontWeight:600, letterSpacing:"0.28em", color:"#aaa", marginBottom:14 }}>
-            CV ── CONTROL PANEL
+            {t("controlPanel")}
           </div>
 
-          {/* audience filter */}
+          <ImportPanel
+            data={data}
+            setData={setData}
+            setPreset={setPreset}
+            btn={btn}
+            btnA={btnA}
+            labelStyle={sidebarLabelStyle}
+            inputStyle={sidebarInputStyle}
+          />
+
+          <BlockEditorPanel
+            data={data}
+            setData={setData}
+            setPreset={setPreset}
+            btn={btn}
+            btnA={btnA}
+            labelStyle={sidebarLabelStyle}
+            inputStyle={sidebarInputStyle}
+          />
+
+          <div style={{ display: "flex", gap: 3, marginBottom: 14, justifyContent: "flex-end" }}>
+            {["zh", "en"].map((l) => (
+              <button
+                key={l}
+                type="button"
+                onClick={() => setLocale(l)}
+                style={{ ...(locale === l ? btnA : btn), padding: "3px 8px", fontSize: 7 }}
+              >
+                {l.toUpperCase()}
+              </button>
+            ))}
+          </div>
+
           <div style={{ fontSize:6.5, fontWeight:600, letterSpacing:"0.18em", color:"#bbb", marginBottom:6 }}>
-            AUDIENCE
+            {t("audience")}
           </div>
           <div style={{ display:"flex", flexWrap:"wrap", gap:3, marginBottom:16 }}>
             {Object.entries(PRESETS).map(([k,v]) => (
@@ -523,7 +581,7 @@ export default function App() {
 
           {/* sections list */}
           <div style={{ fontSize:6.5, fontWeight:600, letterSpacing:"0.18em", color:"#bbb", marginBottom:6 }}>
-            SECTIONS
+            {t("sections")}
           </div>
           {data.sections.map((s,si) => (
             <div key={s.id}
@@ -556,8 +614,8 @@ export default function App() {
 
           {/* actions */}
           <div style={{ borderTop:"1px solid #d6d8dc", marginTop:14, paddingTop:12, display:"flex", flexDirection:"column", gap:4 }}>
-            <button onClick={handlePrint}         style={{ ...btnA, width:"100%", padding:"7px", fontSize:7.5 }}>↓ EXPORT A4 PDF</button>
-            <button onClick={()=>setEditing(false)} style={{ ...btn,  width:"100%", padding:"7px", fontSize:7.5 }}>PREVIEW MODE</button>
+            <button onClick={handlePrint}         style={{ ...btnA, width:"100%", padding:"7px", fontSize:7.5 }}>{t("exportPdf")}</button>
+            <button onClick={()=>setEditing(false)} style={{ ...btn,  width:"100%", padding:"7px", fontSize:7.5 }}>{t("previewMode")}</button>
           </div>
         </aside>
       )}
@@ -801,7 +859,7 @@ export default function App() {
         <button className="no-print" onClick={()=>setEditing(true)}
                 style={{ ...btnA, position:"fixed", bottom:16, right:16, zIndex:200,
                           padding:"6px 14px", fontSize:7.5, boxShadow:"0 2px 10px rgba(0,0,0,0.18)" }}>
-          ENTER EDITOR
+          {t("enterEditor")}
         </button>
       )}
 
@@ -821,7 +879,7 @@ export default function App() {
             boxShadow:"0 2px 10px rgba(0,0,0,0.18)",
           }}
         >
-          编辑面板
+          {t("openPanel")}
         </button>
       )}
     </>

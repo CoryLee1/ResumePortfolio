@@ -9,6 +9,8 @@ import cors from "cors";
 import express from "express";
 import { runTailor } from "./lib/tailorService.js";
 import { runCompose } from "./lib/composeService.js";
+import { runParse } from "./lib/parseService.js";
+import { runRewrite } from "./lib/rewriteService.js";
 import { getViewCount, incrementViewCount, viewsStorageMode } from "./lib/viewStore.js";
 import { llmProviderLabel } from "./lib/llm.js";
 
@@ -20,7 +22,7 @@ const corsOrigins = process.env.CORS_ORIGIN
   : true;
 
 app.use(cors({ origin: corsOrigins }));
-app.use(express.json({ limit: "64kb" }));
+app.use(express.json({ limit: "12mb" }));
 
 app.get("/health", (_req, res) => {
   res.json({
@@ -86,6 +88,34 @@ app.post("/api/compose", async (req, res) => {
   }
 });
 
+app.post("/api/parse", async (req, res) => {
+  try {
+    const { base64, fileName, mimeType, cvData, locale } = req.body ?? {};
+    if (!cvData?.sections) {
+      return res.status(400).json({ error: "cvData required" });
+    }
+    const result = await runParse({ base64, fileName, mimeType, cvData, locale });
+    return res.json(result);
+  } catch (err) {
+    console.error("[POST /api/parse]", err);
+    return res.status(err.status || 500).json({ error: err.message || "parse failed" });
+  }
+});
+
+app.post("/api/rewrite", async (req, res) => {
+  try {
+    const { content, instruction, locale } = req.body ?? {};
+    if (!content?.type) {
+      return res.status(400).json({ error: "content with type required" });
+    }
+    const result = await runRewrite({ content, instruction, locale });
+    return res.json(result);
+  } catch (err) {
+    console.error("[POST /api/rewrite]", err);
+    return res.status(err.status || 500).json({ error: err.message || "rewrite failed" });
+  }
+});
+
 /** @deprecated use /api/tailor or /api/compose */
 app.post("/api/chat", async (req, res) => {
   const { message } = req.body ?? {};
@@ -110,4 +140,6 @@ app.listen(PORT, () => {
   console.log(`  POST /api/views`);
   console.log(`  POST /api/tailor`);
   console.log(`  POST /api/compose`);
+  console.log(`  POST /api/parse`);
+  console.log(`  POST /api/rewrite`);
 });

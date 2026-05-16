@@ -1,9 +1,11 @@
+import { parseJsonFromModel } from "./parseModelJson.js";
+
 const ARK_BASE =
   process.env.ARK_BASE_URL?.replace(/\/$/, "") ||
   "https://ark.cn-beijing.volces.com/api/v3";
 const DEFAULT_MODEL = process.env.ARK_MODEL || "doubao-seed-2-0-pro-260215";
 
-function extractArkText(json) {
+export function extractArkText(json) {
   if (typeof json.output_text === "string") return json.output_text;
 
   for (const item of json.output ?? []) {
@@ -22,8 +24,6 @@ function extractArkText(json) {
 
   throw new Error("No text in Ark response");
 }
-
-import { parseJsonFromModel } from "./parseModelJson.js";
 
 /** @see https://www.volcengine.com/docs/82379/1569618 */
 async function arkResponsesJson({ system, user, maxTokens, apiKey, model }) {
