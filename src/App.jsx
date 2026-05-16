@@ -393,10 +393,51 @@ export default function App() {
           .mobile-receipt-root { display:block !important; }
           html, body { background:#070707 !important; }
         }
+
+        .desktop-layout {
+          min-height: 100vh;
+          width: 100%;
+        }
+        .desktop-layout--dock {
+          display: flex;
+          align-items: stretch;
+        }
+        .desktop-main {
+          flex: 1;
+          display: flex;
+          justify-content: center;
+          align-items: flex-start;
+          min-width: 0;
+          width: 100%;
+          padding: 40px clamp(28px, 6vw, 80px) 64px;
+          box-sizing: border-box;
+        }
+        .desktop-shell.cv-page {
+          margin: 0 auto !important;
+          width: 794px;
+          max-width: 100%;
+          flex-shrink: 0;
+        }
+        @media (min-width: 768px) {
+          html, body { background: #b8bcc4; }
+        }
+        @media (min-width: 768px) and (max-width: 1079px) {
+          .desktop-main--overlay-pad {
+            padding-left: calc(210px + clamp(16px, 4vw, 48px));
+          }
+        }
+        @media (max-width: 900px) {
+          .desktop-main { padding-top: 28px; padding-bottom: 48px; }
+        }
       `}</style>
 
-      {/* ── SIDEBAR EDITOR (tablet overlay / desktop dock) ── */}
-      {editing && !isMobile && !useSidebarDock && sidebarOpen && (
+      {isMobile && (
+        <ReceiptResume data={data} withHttps={withHttps} />
+      )}
+
+      {!isMobile && (
+      <div className={`desktop-layout${editing && useSidebarDock ? " desktop-layout--dock" : ""}`}>
+      {editing && !useSidebarDock && sidebarOpen && (
         <div
           className="no-print"
           role="presentation"
@@ -406,14 +447,28 @@ export default function App() {
           }}
         />
       )}
-      {editing && !isMobile && (useSidebarDock || sidebarOpen) && (
+      {editing && (useSidebarDock || sidebarOpen) && (
         <aside className="no-print" style={{
-          position:"fixed", top:0, left:0, width:210, height:"100vh",
+          ...(useSidebarDock
+            ? {
+                position: "sticky",
+                top: 0,
+                alignSelf: "flex-start",
+                flexShrink: 0,
+                height: "100vh",
+                zIndex: 100,
+              }
+            : {
+                position: "fixed",
+                top: 0,
+                left: 0,
+                zIndex: 290,
+                boxShadow: "8px 0 24px rgba(0,0,0,0.15)",
+              }),
+          width: 210,
           background:"#f0f2f4", borderRight:"1px solid #d6d8dc",
           padding:"16px 12px", overflowY:"auto",
-          zIndex: useSidebarDock ? 100 : 290,
           fontFamily:f,
-          boxShadow: useSidebarDock ? "none" : "8px 0 24px rgba(0,0,0,0.15)",
         }}>
           {!useSidebarDock && (
             <button
@@ -473,50 +528,17 @@ export default function App() {
         </aside>
       )}
 
-      {/* re-enter editor button */}
-      {!editing && !isMobile && (
-        <button className="no-print" onClick={()=>setEditing(true)}
-                style={{ ...btnA, position:"fixed", bottom:16, right:16, zIndex:200,
-                          padding:"6px 14px", fontSize:7.5, boxShadow:"0 2px 10px rgba(0,0,0,0.18)" }}>
-          ENTER EDITOR
-        </button>
-      )}
-
-      {editing && !isMobile && !useSidebarDock && !sidebarOpen && (
-        <button
-          type="button"
-          className="no-print"
-          onClick={() => setSidebarOpen(true)}
-          style={{
-            ...btnA,
-            position:"fixed",
-            bottom:16,
-            left:16,
-            zIndex:200,
-            padding:"6px 12px",
-            fontSize:7.5,
-            boxShadow:"0 2px 10px rgba(0,0,0,0.18)",
-          }}
-        >
-          编辑面板
-        </button>
-      )}
-
-      {isMobile && (
-        <ReceiptResume data={data} withHttps={withHttps} />
-      )}
-
-      {/* ── CV PAGE (tablet/desktop) ── */}
+      <main
+        className={`desktop-main${
+          editing && !useSidebarDock && sidebarOpen ? " desktop-main--overlay-pad" : ""
+        }`}
+      >
       <div
         className="desktop-shell cv-page"
         style={{
-          width:794,
-          maxWidth:"100%",
-          margin: editing && useSidebarDock ? "0 auto 0 228px" : "0 auto",
           background:"#f7f8fa",
-          minHeight:"100vh",
-          boxShadow:"0 0 60px rgba(0,0,0,0.08)",
-          transition:"margin 0.2s",
+          minHeight:"min(100vh, 100%)",
+          boxShadow:"0 20px 70px rgba(0,0,0,0.1), 0 0 0 1px rgba(0,0,0,0.06)",
           border:"1px solid #1a1a1a",
         }}
       >
@@ -734,6 +756,37 @@ export default function App() {
 
         </div>
       </div>
+      </main>
+      </div>
+      )}
+
+      {!editing && !isMobile && (
+        <button className="no-print" onClick={()=>setEditing(true)}
+                style={{ ...btnA, position:"fixed", bottom:16, right:16, zIndex:200,
+                          padding:"6px 14px", fontSize:7.5, boxShadow:"0 2px 10px rgba(0,0,0,0.18)" }}>
+          ENTER EDITOR
+        </button>
+      )}
+
+      {editing && !isMobile && !useSidebarDock && !sidebarOpen && (
+        <button
+          type="button"
+          className="no-print"
+          onClick={() => setSidebarOpen(true)}
+          style={{
+            ...btnA,
+            position:"fixed",
+            bottom:16,
+            left:16,
+            zIndex:200,
+            padding:"6px 12px",
+            fontSize:7.5,
+            boxShadow:"0 2px 10px rgba(0,0,0,0.18)",
+          }}
+        >
+          编辑面板
+        </button>
+      )}
     </>
   );
 }

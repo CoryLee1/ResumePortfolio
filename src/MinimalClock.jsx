@@ -13,7 +13,7 @@ export default function MinimalClock({ portfolioUrl, socialUrl }) {
   const [now, setNow] = useState(() => new Date());
 
   useEffect(() => {
-    const id = setInterval(() => setNow(new Date()), 1000);
+    const id = setInterval(() => setNow(new Date()), 50);
     return () => clearInterval(id);
   }, []);
 
@@ -21,8 +21,10 @@ export default function MinimalClock({ portfolioUrl, socialUrl }) {
   const mm = pad2(now.getMinutes());
   const label = `${hh}:${mm}`;
 
-  const minutes = now.getMinutes() + now.getSeconds() / 60;
+  const seconds = now.getSeconds() + now.getMilliseconds() / 1000;
+  const minutes = now.getMinutes() + seconds / 60;
   const hours12 = (now.getHours() % 12) + minutes / 60;
+  const secondDeg = seconds * 6;
   const minuteDeg = minutes * 6;
   const hourDeg = hours12 * 30;
 
@@ -185,6 +187,18 @@ export default function MinimalClock({ portfolioUrl, socialUrl }) {
               stroke="#0a0a0a"
               strokeWidth="1.35"
               strokeLinecap="square"
+            />
+          </g>
+          <g transform={`rotate(${secondDeg})`}>
+            <line
+              x1="0"
+              y1="6"
+              x2="0"
+              y2="-68"
+              stroke="#0a0a0a"
+              strokeWidth="0.55"
+              strokeLinecap="square"
+              opacity="0.88"
             />
           </g>
           <circle cx="0" cy="0" r="2.2" fill="#0a0a0a" />
