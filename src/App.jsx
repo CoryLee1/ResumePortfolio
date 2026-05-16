@@ -1,11 +1,8 @@
 import { useState, useEffect } from "react";
-
-function withHttps(url) {
-  if (!url || typeof url !== "string") return "";
-  const u = url.trim();
-  if (/^https?:\/\//i.test(u)) return u;
-  return `https://${u}`;
-}
+import MinimalClock from "./MinimalClock.jsx";
+import ReceiptResume from "./ReceiptResume.jsx";
+import { DATA, PRESETS } from "./cvData.js";
+import { withHttps } from "./withHttps.js";
 
 const linkStyle = {
   color: "#2a5cab",
@@ -19,154 +16,6 @@ const headerLinkStyle = {
   borderBottom: "0.5px solid #555",
 };
 
-/* ───────────── DATA ───────────── */
-const DATA = {
-  meta: {
-    name: "YIHUA LI",
-    alias: "CORY",
-    contact: {
-      phone: "+1 301 979 5478",
-      email: "cory958014884@gmail.com",
-      emailAlt: "yl11194@nyu.edu",
-      web: "https://coryleeart.com/",
-      scholar: "https://scholar.google.com/citations?user=PIibA_wAAAAJ",
-      twitter: "https://twitter.com/cory958014884",
-      instagram: "https://www.instagram.com/cory_leeeee_/",
-      loc: "Brooklyn, NY / Shanghai"
-    }
-  },
-  sections: [
-    {
-      id: "profile", title: "PROFILE", visible: true,
-      items: [{
-        id: "s1", visible: true,
-        content: {
-          type: "text",
-          text: "Cross-disciplinary creative technologist building at the intersection of AI, real-time 3D graphics, and human expression. Creator of award-winning AI systems exhibited at SIGGRAPH, NeurIPS, CVPR, and ARTECHOUSE NYC. SIGGRAPH 2025 Best Art Paper (11% acceptance). Currently shipping AI products at Xiaohongshu (500M+ MAU) while developing Echuu — the world's first real-time 3D AI VTuber creation platform."
-        }
-      }]
-    },
-    {
-      id: "education", title: "EDUCATION", visible: true,
-      items: [
-        { id: "e1", visible: true, content: { type: "edu", school: "New York University", program: "MPS, Interactive Telecommunications Program (ITP)", date: "2023.09 – 2025.05", loc: "Brooklyn, NY", details: ["GPA 4.0/4.0 — Research: AI Application Systems, Real-time Generative Media", "Thesis: Echuu — AI VTuber Creation Platform", "NYU Tisch School of the Arts Graduate Scholarship"] } },
-        { id: "e2", visible: true, content: { type: "edu", school: "Donghua University", program: "BFA, Product Design", date: "2019 – 2023", loc: "Shanghai", details: ["Rank 3/57 · GPA 4.03/5.0 · Outstanding Graduate", "National Scholarship (2020–2022)", "Advisor: Prof. Jihong Yu"] } }
-      ]
-    },
-    {
-      id: "work", title: "EXPERIENCE", visible: true,
-      items: [
-        { id: "w1", visible: true, content: { type: "work", co: "Xiaohongshu (REDnote)", role: "Product Manager", date: "2025.08 – Present", loc: "Shanghai", bullets: ["Led 0→1 development of Tabii, AI-powered visual bookmark Chrome extension with multimodal vision-language captioning (Qwen-VL) and vector similarity matching", "Full product lifecycle: concept → requirement → compliance → Chrome Web Store launch → Juguang promotion strategy", "Built frontend UI/interaction/animation + AI prototypes with Alibaba Cloud AnalyticDB vector search, tiered degradation", "Organic growth: 200+ community, 4,000+ likes, 40,000+ views — zero paid promotion"], links: [{ label: "Tabii · Chrome Web Store", url: "https://chromewebstore.google.com/detail/ldlifbcdlbonphobedkmignnjmfjdemk" }] } },
-        { id: "w2", visible: true, content: { type: "work", co: "Duolingo", role: "Brand Design Consultant", date: "2024.04", loc: "Remote", bullets: ["VTuber IP character and livestreaming strategy for Brand Design Team"] } },
-        { id: "w3", visible: true, content: { type: "work", co: "Xue Zhiqian — MV: INFINITE", role: "Motion Graphics Designer", date: "2023.01", loc: "Shanghai", bullets: ["CG animation + AI frame interpolation for major Chinese artist", "1,167,000+ views · 6,897 likes on YouTube"], links: [{ label: "Music video · INFINITE (YouTube)", url: "https://youtu.be/1FjXpFVZCZg" }] } },
-        { id: "w4", visible: true, content: { type: "work", co: "Mirror World / rct.ai", role: "Design Intern → Director", date: "2022.05 – 08", loc: "Beijing", bullets: ["3D modeling, CG promo for NFT game Matrix", "Solo 30-sec promo video in 20 days — 2,000+ views on ENJINSTARTER", "\"Unstable Brain\" AI NPC API demo"], links: [{ label: "mirrorworld.fun", url: "https://mirrorworld.fun/" }, { label: "Promo clip (X)", url: "https://twitter.com/joinmirrorworld/status/1612285639604727809?s=20" }] } }
-      ]
-    },
-    {
-      id: "projects", title: "PROJECTS", visible: true,
-      items: [
-        { id: "p1", visible: true, content: { type: "proj", name: "Echuu", sub: "AI VTuber Creation Platform — Real-time 3D", date: "2025 –", url: "https://www.echuu.ai/", links: [{ label: "Official website · Anngel", url: "https://www.anngel.live/" }, { label: "Echuu · X (Twitter)", url: "https://x.com/Echuu_AIVTUBING" }], bullets: ["World's first platform: dream characters → AI VTubers → monetized live streams", "R3F + WebSocket + HLS/WebRTC · ACP framework (Agency, Embodiment, Temporality)", "CLS: 5 psycholinguistic cognitive modes for character performance", "Target: July 2026 demo · SIGGRAPH Asia 2026"] } },
-        { id: "p2", visible: true, content: { type: "proj", name: "PoeSpin", sub: "Human-AI Dance→Poetry · ML Installation + CGI + Paper", date: "2024 – 2025", url: "https://coryleeart.com/Poespin-Wherever-your-body-reach-there-is-a-poetry", bullets: ["Pole dance → poetry via multimodal ML + NLP + CGI (C4D, Blender, UE5, TouchDesigner)", "★ SIGGRAPH 2025 Best Art Paper — 4.7/5.0, 1/16, 11% acceptance", "MUSE Gold · 10+ exhibitions: ARTECHOUSE NYC, Deji Museum (w/ Beeple), NeurIPS, CVPR, Chinese CHI"], links: [{ label: "SIGGRAPH 2025 · DOI", url: "https://doi.org/10.1145/3736781" }, { label: "Reviewer score supplement", url: "https://drive.google.com/file/d/1IfRNTqcIQ1hm9Zp_4yz-htIb4-XJUiEr/view?usp=sharing" }] } },
-        { id: "p3", visible: true, content: { type: "proj", name: "IRL to URL", sub: "AI-Native Game — Real Subway Social Spaces", date: "2024", url: "https://coryleeart.com/IRL-URL", bullets: ["Solo full-stack: Node.js + Gemini API + WebRTC + Three.js", "LA A+D Museum AI Award · Future Tense Award · Athens Digital Art Festival"] } },
-        { id: "p4", visible: true, content: { type: "proj", name: "Blibug", sub: "AI VTuber on Bilibili Danmaku · Unity + NLP", date: "2022 – 2023", url: "https://doi.org/10.1145/3591196.3596618", links: [{ label: "Video (YouTube)", url: "https://youtu.be/-6tBllXne40" }], bullets: ["First author — ACM CC'23 · 4 citations"] } }
-      ]
-    },
-    {
-      id: "publications", title: "PUBLICATIONS", visible: true,
-      items: [
-        { id: "pub1", visible: true, content: { type: "pub", title: "PoeSpin: A Human-AI Dance to Poetry System for Movement-Based Verse Generation", venue: "PACM-CGIT 8(3) · SIGGRAPH 2025 / Vancouver · doi:10.1145/3736781", note: "★ Best Art Paper · 4.7/5.0 · 11% acceptance · 1 citation", authors: "Yihua Li, H. Chen, Y. Li, Y. Xin — 1st author", href: "https://doi.org/10.1145/3736781", links: [{ label: "Supplementary PDF", url: "https://drive.google.com/file/d/1fdQRLEWMN054HsIXzhXU3l3uv263SVu_/view?usp=sharing" }] } },
-        { id: "pub2", visible: true, content: { type: "pub", title: "Blibug: AI Vtuber Based on Bilibili Danmuku Interaction", venue: "ACM Creativity & Cognition (CC'23) / Online · pp.387–390", note: "13 citations", authors: "Yihua Li, Y. Sun, Y. Xu, J. Yu — 1st author", href: "https://doi.org/10.1145/3591196.3596618", links: [{ label: "Video", url: "https://youtu.be/-6tBllXne40" }] } },
-        { id: "pub3", visible: true, content: { type: "pub", title: "Explore the Future Earth with Wander 2.0: AI Chatbot Driven By Knowledge-Base Story Generation", venue: "CHI 2023 Extended Abstracts / Hamburg", note: "27 citations", authors: "Y. Sun, Y. Xu, C. Cheng, Yihua Li, C. Lee, A. Asadipour — co-author" } },
-        { id: "pub4", visible: true, content: { type: "pub", title: "Travel with Wander in the Metaverse: An AI Chatbot to Visit the Future Earth", venue: "IEEE MMSP 2022 / Online", note: "24 citations", authors: "Y. Sun, Y. Xu, C. Cheng, Yihua Li, CH Lee, A. Asadipour — co-author" } },
-        { id: "pub5", visible: true, content: { type: "pub", title: "Wander [001]", venue: "SIGGRAPH Asia 2022 Art Gallery", note: "", authors: "Y. Sun, CH Lee, C. Cheng, A. Asadipour, Y. Xu, Yihua Li — co-author" } }
-      ]
-    },
-    {
-      id: "exhibitions", title: "EXHIBITIONS", visible: true,
-      items: [
-        { id: "ex1", visible: true, content: { type: "ln", l: "SIGGRAPH 2025 Art Gallery", r: "Vancouver 2025" } },
-        { id: "ex2", visible: true, content: { type: "ln", l: "Digital Design Days × Prompt Magazine", r: "2025" } },
-        { id: "ex3", visible: true, content: { type: "ln", l: "CVPR 2025 AI Art Gallery", r: "Nashville 2025" } },
-        { id: "ex4", visible: true, content: { type: "ln", l: "Athens Digital Art Festival: Simulacra", r: "Athens 2024" } },
-        { id: "ex5", visible: true, content: { type: "ln", l: "NYC ARTECHOUSE: Submerge", r: "New York 2024" } },
-        { id: "ex6", visible: true, content: { type: "ln", l: "Nanjing Deji Museum: DIVERGE (group w/ Beeple)", r: "Nanjing 2024" } },
-        { id: "ex7", visible: true, content: { type: "ln", l: "NeurIPS 2024 Creative AI Track", r: "Vancouver 2024" } },
-        { id: "ex8", visible: true, content: { type: "ln", l: "Chinese CHI 2024 Art Gallery", r: "Shenzhen 2024" } },
-        { id: "ex9", visible: true, content: { type: "ln", l: "Aspace Gallery NYC", r: "New York 2024" } },
-        { id: "ex10", visible: true, content: { type: "ln", l: "LA A+D Museum", r: "Los Angeles 2024" } },
-        { id: "ex11", visible: true, content: { type: "ln", l: "NYU ITP Spring Show", r: "New York 2024" } },
-        { id: "ex12", visible: true, content: { type: "ln", l: "Asia Digital Art Award FUKUOKA", r: "Fukuoka 2022" } },
-        { id: "ex13", visible: true, content: { type: "ln", l: "Tongji Design Week", r: "Shanghai 2021" } }
-      ]
-    },
-    {
-      id: "awards", title: "AWARDS", visible: true,
-      items: [
-        { id: "a1", visible: true, content: { type: "ln", l: "SIGGRAPH Best Art Paper — 1/16, 11%", r: "2025" } },
-        { id: "a2", visible: true, content: { type: "ln", l: "DIA (Design Intelligence Award) Excellence", r: "2025" } },
-        { id: "a3", visible: true, content: { type: "ln", l: "Art Laguna Prize — Finalist", r: "2025" } },
-        { id: "a4", visible: true, content: { type: "ln", l: "FUTURE TENSE 3rd Edition — Shortlist", r: "2025" } },
-        { id: "a5", visible: true, content: { type: "ln", l: "MUSE Design Award — Gold (AI Category)", r: "2024" } },
-        { id: "a6", visible: true, content: { type: "ln", l: "LA A+D Museum — Generative AI Award", r: "2024" } },
-        { id: "a7", visible: true, content: { type: "ln", l: "NYU TSOA Graduate Scholarship", r: "2023–25" } },
-        { id: "a8", visible: true, content: { type: "ln", l: "Asia Digital Art FUKUOKA — Moving Image Finalist", r: "2022", url: "https://youtu.be/0B55EBBri_0" } },
-        { id: "a9", visible: true, content: { type: "ln", l: "National Scholarship — China Ministry of Education", r: "2020–22" } }
-      ]
-    },
-    {
-      id: "talks", title: "INVITED TALKS", visible: true,
-      items: [
-        { id: "t1", visible: true, content: { type: "ln", l: "ZhenFund NY — AI Founder/Investor Closed-Door Event", r: "inv. Monica Xie" } },
-        { id: "t2", visible: true, content: { type: "ln", l: "ASU Mix Center — Immersive Experience Design", r: "inv. Prof. Weidi Zhang" } }
-      ]
-    },
-    {
-      id: "press", title: "PRESS", visible: true,
-      items: [
-        { id: "pr1", visible: true, content: { type: "ln", l: "SIGGRAPH 2025 Interview: Dancing with Algorithm", r: "" } },
-        { id: "pr2", visible: true, content: { type: "ln", l: "Prompt Magazine × Digital Design Days", r: "" } },
-        { id: "pr3", visible: true, content: { type: "ln", l: "UAAD — On AI, Movement, Future of Digital Expression", r: "", url: "https://www.uaad.art/post/in-conversation-cory-yihua-li-on-ai-movement-and-the-future-of-digital-expression" } },
-        { id: "pr4", visible: true, content: { type: "ln", l: "NYC ARTECHOUSE Interview", r: "" } },
-        { id: "pr5", visible: true, content: { type: "ln", l: "MUSE Design Award — Official Interview", r: "", url: "https://muse.world/interview-with-yihua-li-from-vtubing-to-cgi-a-multi-faceted-media-artist/" } },
-        { id: "pr6", visible: true, content: { type: "ln", l: "Globe — Interviews 60: Digital Artist", r: "", url: "https://www.youtube.com/watch?v=uj9Ak73--Pk" } },
-        { id: "pr7", visible: true, content: { type: "ln", l: "CanvasRebel · VoyageLA · Boldjourney", r: "" } }
-      ]
-    },
-    {
-      id: "skills", title: "SKILLS", visible: true,
-      items: [
-        { id: "sk1", visible: true, content: { type: "kv", k: "ML / AI", v: "Python, multimodal ML, NLP, real-time AI, LLM integration" } },
-        { id: "sk2", visible: true, content: { type: "kv", k: "FULL-STACK", v: "Next.js, React, R3F, Node.js, WebRTC, WebSocket, HLS" } },
-        { id: "sk3", visible: true, content: { type: "kv", k: "3D / CREATIVE", v: "Blender, C4D (Octane), UE5, Unity, TouchDesigner, p5.js" } },
-        { id: "sk4", visible: true, content: { type: "kv", k: "DESIGN", v: "Figma, Lottie, Rive, Adobe Suite, Product Prototyping" } },
-        { id: "sk5", visible: true, content: { type: "kv", k: "LANGUAGE", v: "Native Chinese · Fluent English (IELTS 7.0)" } }
-      ]
-    },
-    {
-      id: "references", title: "REFERENCES", visible: true,
-      items: [
-        { id: "r1", visible: true, content: { type: "kv", k: "Daniel Shiffman", v: "YouTube 1.75M, The Coding Train" } },
-        { id: "r2", visible: true, content: { type: "kv", k: "Shawn Van Every", v: "Chair, NYU ITP" } },
-        { id: "r3", visible: true, content: { type: "kv", k: "Luba Elliot", v: "Curator, CVPR AI Art" } },
-        { id: "r4", visible: true, content: { type: "kv", k: "Allison Parrish", v: "Electronic Poetry Artist, Mentor" } },
-        { id: "r5", visible: true, content: { type: "kv", k: "John Henry Thompson", v: "Inventor of Lingo, Advisor" } },
-        { id: "r6", visible: true, content: { type: "kv", k: "Heather Dewey-Hagborg", v: "DNA Digital Artist, Professor" } },
-        { id: "r7", visible: true, content: { type: "kv", k: "Weidi Zhang", v: "Asst. Prof., ASU" } },
-        { id: "r8", visible: true, content: { type: "kv", k: "Alan Yingtao Tian", v: "SAKANA AI (ex-Google DeepMind)" } },
-        { id: "r9", visible: true, content: { type: "kv", k: "James Kuczinscky", v: "Brand Director, Duolingo" } },
-        { id: "r10", visible: true, content: { type: "kv", k: "Yuqian Sun (CheeseTalk)", v: "PhD, Royal College of Art · Research Artist, Midjourney Storytelling Lab · fakecheese.me" } },
-        { id: "r11", visible: true, content: { type: "kv", k: "00 Zhang (Aio0o0o0)", v: "Artist · MArch Bartlett UCL · Zabludowicz Collection · 00zhang.com" } }
-      ]
-    }
-  ]
-};
-
-const PRESETS = {
-  full:      { label: "ALL",      secs: null },
-  investor:  { label: "EB-1A",    secs: ["profile","projects","awards","publications","exhibitions","press","education","talks","work","references"] },
-  curator:   { label: "CURATOR",  secs: ["profile","exhibitions","projects","publications","awards","press","education","talks","references"] },
-  recruiter: { label: "RECRUITER",secs: ["profile","work","projects","skills","education","awards","publications","references"] },
-};
 
 function useCountdowns() {
   const [now, setNow] = useState(new Date());
@@ -176,6 +25,18 @@ function useCountdowns() {
   const echuuDays  = Math.max(0, Math.ceil((new Date("2026-08-01") - now) / 86400000));
   const retireDays = Math.max(0, Math.ceil((new Date("2031-01-31") - now) / 86400000));
   return { age: ageYears, echuuDays, retireDays };
+}
+
+function useWindowWidth() {
+  const [w, setW] = useState(() =>
+    typeof window !== "undefined" ? window.innerWidth : 1280
+  );
+  useEffect(() => {
+    const fn = () => setW(window.innerWidth);
+    window.addEventListener("resize", fn);
+    return () => window.removeEventListener("resize", fn);
+  }, []);
+  return w;
 }
 
 /* ─────────────────────────────────────────
@@ -398,8 +259,17 @@ export default function App() {
   const [overS,   setOverS]   = useState(null);
   const [dragI,   setDragI]   = useState(null);
   const [overI,   setOverI]   = useState(null);
+  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const winW = useWindowWidth();
+  const isMobile = winW < 768;
+  const useSidebarDock = winW >= 1080;
   const { age, echuuDays, retireDays } = useCountdowns();
   const f = "'IBM Plex Mono', monospace";
+
+  useEffect(() => {
+    if (winW >= 1080) setSidebarOpen(true);
+    else if (winW >= 768) setSidebarOpen(false);
+  }, [winW]);
 
   /* preset */
   const applyPreset = (k) => {
@@ -452,6 +322,7 @@ export default function App() {
       {/* ── GLOBAL STYLES ── */}
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
         *, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }
         html, body { background:#c6c8cc; font-family:'IBM Plex Mono',monospace; -webkit-font-smoothing:antialiased; }
 
@@ -469,15 +340,90 @@ export default function App() {
         ::-webkit-scrollbar-thumb { background:#b8b5af; }
         .drop-target { border-top:2px solid #0a0a0a !important; }
         .sidebar-btn:hover { background:#0a0a0a !important; color:#f4f5f7 !important; }
+
+        .cv-header-block {
+          display:flex;
+          justify-content:space-between;
+          align-items:stretch;
+          gap:20px;
+        }
+        .cv-contact-grid { border-left:1px solid #252525; padding-left:20px; }
+        @media (max-width: 900px) {
+          .cv-header-block {
+            flex-direction:column;
+            align-items:stretch;
+          }
+          .cv-contact-grid {
+            border-left:none !important;
+            padding-left:0 !important;
+            padding-top:16px;
+            border-top:1px solid #252525;
+          }
+        }
+        .spec-bar-row {
+          display:flex;
+          justify-content:space-between;
+          align-items:center;
+          gap:10px;
+          flex-wrap:wrap;
+        }
+        .spec-bar-meta { display:flex; flex-wrap:wrap; gap:12px; align-items:center; }
+        @media (max-width: 720px) {
+          .spec-bar-meta { flex-direction:column; align-items:flex-start; gap:6px; }
+        }
+        .metrics-wrap {
+          overflow-x:auto;
+          -webkit-overflow-scrolling:touch;
+          margin-bottom:14px;
+        }
+        .metrics-panel {
+          display:grid;
+          grid-template-columns:1fr 1fr 1fr 1.2fr;
+          min-width:520px;
+        }
+        .cv-body {
+          padding:32px 38px 38px;
+        }
+        @media (max-width: 600px) {
+          .cv-body { padding:18px 14px 22px; }
+        }
+        .mobile-receipt-root { display:none; }
+        @media (max-width: 767px) {
+          .desktop-shell { display:none !important; }
+          .mobile-receipt-root { display:block !important; }
+          html, body { background:#070707 !important; }
+        }
       `}</style>
 
-      {/* ── SIDEBAR EDITOR ── */}
-      {editing && (
+      {/* ── SIDEBAR EDITOR (tablet overlay / desktop dock) ── */}
+      {editing && !isMobile && !useSidebarDock && sidebarOpen && (
+        <div
+          className="no-print"
+          role="presentation"
+          onClick={() => setSidebarOpen(false)}
+          style={{
+            position:"fixed", inset:0, background:"rgba(0,0,0,0.38)", zIndex:280,
+          }}
+        />
+      )}
+      {editing && !isMobile && (useSidebarDock || sidebarOpen) && (
         <aside className="no-print" style={{
           position:"fixed", top:0, left:0, width:210, height:"100vh",
           background:"#f0f2f4", borderRight:"1px solid #d6d8dc",
-          padding:"16px 12px", overflowY:"auto", zIndex:100, fontFamily:f
+          padding:"16px 12px", overflowY:"auto",
+          zIndex: useSidebarDock ? 100 : 290,
+          fontFamily:f,
+          boxShadow: useSidebarDock ? "none" : "8px 0 24px rgba(0,0,0,0.15)",
         }}>
+          {!useSidebarDock && (
+            <button
+              type="button"
+              onClick={() => setSidebarOpen(false)}
+              style={{ ...btnA, width:"100%", padding:"6px", fontSize:7.5, marginBottom:10 }}
+            >
+              收起面板
+            </button>
+          )}
           {/* title */}
           <div style={{ fontSize:7, fontWeight:600, letterSpacing:"0.28em", color:"#aaa", marginBottom:14 }}>
             CV ── CONTROL PANEL
@@ -528,7 +474,7 @@ export default function App() {
       )}
 
       {/* re-enter editor button */}
-      {!editing && (
+      {!editing && !isMobile && (
         <button className="no-print" onClick={()=>setEditing(true)}
                 style={{ ...btnA, position:"fixed", bottom:16, right:16, zIndex:200,
                           padding:"6px 14px", fontSize:7.5, boxShadow:"0 2px 10px rgba(0,0,0,0.18)" }}>
@@ -536,27 +482,53 @@ export default function App() {
         </button>
       )}
 
-      {/* ── CV PAGE ── */}
-      <div className="cv-page" style={{
-        width:794, maxWidth:"100%",
-        margin: editing ? "0 auto 0 228px" : "0 auto",
-        background:"#f7f8fa",
-        minHeight:"100vh",
-        boxShadow:"0 0 60px rgba(0,0,0,0.08)",
-        transition:"margin 0.2s",
-        border:"1px solid #1a1a1a"
-      }}>
-        <div className="cv-body" style={{ padding:"32px 38px 38px" }}>
+      {editing && !isMobile && !useSidebarDock && !sidebarOpen && (
+        <button
+          type="button"
+          className="no-print"
+          onClick={() => setSidebarOpen(true)}
+          style={{
+            ...btnA,
+            position:"fixed",
+            bottom:16,
+            left:16,
+            zIndex:200,
+            padding:"6px 12px",
+            fontSize:7.5,
+            boxShadow:"0 2px 10px rgba(0,0,0,0.18)",
+          }}
+        >
+          编辑面板
+        </button>
+      )}
+
+      {isMobile && (
+        <ReceiptResume data={data} withHttps={withHttps} />
+      )}
+
+      {/* ── CV PAGE (tablet/desktop) ── */}
+      <div
+        className="desktop-shell cv-page"
+        style={{
+          width:794,
+          maxWidth:"100%",
+          margin: editing && useSidebarDock ? "0 auto 0 228px" : "0 auto",
+          background:"#f7f8fa",
+          minHeight:"100vh",
+          boxShadow:"0 0 60px rgba(0,0,0,0.08)",
+          transition:"margin 0.2s",
+          border:"1px solid #1a1a1a",
+        }}
+      >
+        <div className="cv-body">
 
           {/* ── HEADER: BLACK BLOCK ── */}
-          <div style={{
+          <div
+            className="cv-header-block"
+            style={{
             background:"#0a0a0a",
             padding:"20px 24px",
-            display:"flex",
-            justifyContent:"space-between",
-            alignItems:"stretch",
             marginBottom:0,
-            /* subtle top accent stripe */
             borderTop:"3px solid #2a2a2a"
           }}>
             {/* left: name + ID */}
@@ -572,9 +544,7 @@ export default function App() {
             </div>
 
             {/* right: contact — clean label grid */}
-            <div style={{
-              borderLeft:"1px solid #252525",
-              paddingLeft:20,
+            <div className="cv-contact-grid" style={{
               display:"flex",
               flexDirection:"column",
               justifyContent:"center",
@@ -614,16 +584,13 @@ export default function App() {
           </div>
 
           {/* ── SPEC BAR ── */}
-          <div style={{
+          <div className="spec-bar-row" style={{
             background:"#161616",
             padding:"5px 24px",
-            display:"flex",
-            justifyContent:"space-between",
-            alignItems:"center",
             marginBottom:8
           }}>
             <div style={{ fontFamily:f, fontSize:7, letterSpacing:"0.16em", color:"#555",
-                          display:"flex", gap:0, alignItems:"center" }}>
+                          display:"flex", gap:0, alignItems:"center", flexWrap:"wrap" }}>
               {["AI CREATIVE TECHNOLOGIST","PRODUCT DESIGNER","MEDIA ARTIST"].map((t,i,arr) => (
                 <span key={t}>
                   {t}
@@ -632,21 +599,23 @@ export default function App() {
                 </span>
               ))}
             </div>
-            <div style={{ fontFamily:f, fontSize:6.5, color:"#3a3a3a", letterSpacing:"0.06em",
-                           display:"flex", gap:12, alignItems:"center" }}>
+            <div className="spec-bar-meta" style={{ fontFamily:f, fontSize:6.5, color:"#3a3a3a", letterSpacing:"0.06em" }}>
               <span>GS: <b style={{ color:"#666" }}>65</b> cited</span>
               <span>h-index <b style={{ color:"#666" }}>3</b></span>
               <span style={{ color:"#2a2a2a" }}>{new Date().getFullYear()}.{String(new Date().getMonth()+1).padStart(2,"0")} · ARCHIVE</span>
             </div>
           </div>
 
+          <MinimalClock
+            portfolioUrl={withHttps(data.meta.contact.web)}
+            socialUrl={data.meta.contact.twitter}
+          />
+
           {/* ── METRICS PANEL ── */}
-          <div style={{
+          <div className="metrics-wrap">
+          <div className="metrics-panel" style={{
             border:"1px solid #1a1a1a",
             background:"#eff0f2",
-            display:"grid",
-            gridTemplateColumns:"1fr 1fr 1fr 1.2fr",
-            marginBottom:14,
             overflow:"hidden"
           }}>
             {/* header row */}
@@ -684,6 +653,7 @@ export default function App() {
                 hermit_in_the_mountains.exe
               </div>
             </div>
+          </div>
           </div>
 
           {/* ── SECTIONS ── */}

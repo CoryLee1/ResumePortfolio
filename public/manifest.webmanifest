@@ -1,0 +1,19 @@
+{
+  "name": "Yihua Li Receipt Resume",
+  "short_name": "Cory Receipt",
+  "description": "Mobile receipt-style resume for Yihua Li (Cory).",
+  "start_url": "./mobile.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#070707",
+  "theme_color": "#070707",
+  "icons": [
+    {
+      "src": "./icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
