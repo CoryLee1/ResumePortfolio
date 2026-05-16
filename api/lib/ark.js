@@ -5,6 +5,36 @@ const ARK_BASE =
   "https://ark.cn-beijing.volces.com/api/v3";
 const DEFAULT_MODEL = process.env.ARK_MODEL || "doubao-seed-2-0-pro-260215";
 
+// Total time budget for an Ark request, kept under Vercel's 60s function cap
+// so a slow generation fails cleanly (500) instead of being killed (504).
+const DEADLINE_MS = Number(process.env.ARK_DEADLINE_MS) || 55000;
+// Cap on the Responses-API attempt so a slow failure cannot starve the
+// chat/completions fallback of budget.
+const RESPONSES_CAP_MS = Number(process.env.ARK_RESPONSES_TIMEOUT_MS) || 20000;
+
+/** fetch() bounded by an AbortController; aborts surface as fallback-able errors */
+async function fetchWithTimeout(url, options, timeoutMs) {
+  if (!Number.isFinite(timeoutMs) || timeoutMs <= 0) {
+    const e = new Error("Ark request budget exhausted before send");
+    e.fallbackChat = true;
+    throw e;
+  }
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    return await fetch(url, { ...options, signal: controller.signal });
+  } catch (err) {
+    if (err.name === "AbortError") {
+      const e = new Error(`Ark request timed out after ${timeoutMs}ms`);
+      e.fallbackChat = true;
+      throw e;
+    }
+    throw err;
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
 function textFromContent(content) {
   if (typeof content === "string" && content.trim()) return content;
   if (!Array.isArray(content)) return null;
@@ -124,11 +154,13 @@ export function extractArkText(json) {
 function useResponsesApi() {
   if (process.env.ARK_PREFER_CHAT === "1") return false;
   if (process.env.ARK_USE_RESPONSES === "0") return false;
+  // Responses + reasoning models often exceed Vercel's 60s function limit
+  if (process.env.VERCEL === "1") return false;
   return true;
 }
 
 /** @see https://www.volcengine.com/docs/82379/1569618 */
-async function arkResponsesJson({ system, user, maxTokens, apiKey, model }) {
+async function arkResponsesJson({ system, user, maxTokens, apiKey, model, timeoutMs }) {
   const body = {
     model,
     input: [
@@ -148,14 +180,18 @@ async function arkResponsesJson({ system, user, maxTokens, apiKey, model }) {
     body.text = { format: { type: "json_object" } };
   }
 
-  const res = await fetch(`${ARK_BASE}/responses`, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      "Content-Type": "application/json",
+  const res = await fetchWithTimeout(
+    `${ARK_BASE}/responses`,
+    {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(body),
     },
-    body: JSON.stringify(body),
-  });
+    timeoutMs,
+  );
 
   if (!res.ok) {
     const err = await res.text();
@@ -180,7 +216,7 @@ async function arkResponsesJson({ system, user, maxTokens, apiKey, model }) {
 }
 
 /** OpenAI-compatible Chat API on Ark (no response_format — many Ark models reject json_object) */
-async function arkChatCompletionsJson({ system, user, maxTokens, apiKey, model }) {
+async function arkChatCompletionsJson({ system, user, maxTokens, apiKey, model, timeoutMs }) {
   const jsonHint =
     process.env.ARK_JSON_MODE === "0"
       ? ""
@@ -196,14 +232,18 @@ async function arkChatCompletionsJson({ system, user, maxTokens, apiKey, model }
     ],
   };
 
-  const res = await fetch(`${ARK_BASE}/chat/completions`, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      "Content-Type": "application/json",
+  const res = await fetchWithTimeout(
+    `${ARK_BASE}/chat/completions`,
+    {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(body),
     },
-    body: JSON.stringify(body),
-  });
+    timeoutMs,
+  );
 
   if (!res.ok) {
     const err = await res.text();
@@ -225,10 +265,19 @@ export async function arkChatJson({ system, user, maxTokens = 2048 }) {
   if (!apiKey) return { placeholder: true, data: null, provider: "ark" };
 
   const model = process.env.ARK_MODEL || DEFAULT_MODEL;
+  const deadline = Date.now() + DEADLINE_MS;
 
   if (useResponsesApi()) {
     try {
-      const data = await arkResponsesJson({ system, user, maxTokens, apiKey, model });
+      const timeoutMs = Math.min(RESPONSES_CAP_MS, deadline - Date.now());
+      const data = await arkResponsesJson({
+        system,
+        user,
+        maxTokens,
+        apiKey,
+        model,
+        timeoutMs,
+      });
       return { placeholder: false, data, provider: "ark", model };
     } catch (err) {
       console.warn(
@@ -244,6 +293,7 @@ export async function arkChatJson({ system, user, maxTokens = 2048 }) {
     maxTokens,
     apiKey,
     model,
+    timeoutMs: deadline - Date.now(),
   });
   return { placeholder: false, data, provider: "ark-chat", model };
 }
