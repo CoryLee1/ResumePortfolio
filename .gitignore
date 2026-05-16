@@ -4,3 +4,5 @@ dist
 *.local
 native/node_modules
 native/.expo
+api/node_modules
+api/.env
